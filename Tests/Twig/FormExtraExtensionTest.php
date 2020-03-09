@@ -45,33 +45,29 @@ class FormExtraExtensionTest extends AbstractTestCase
      */
     protected function setUp()
     {
-        $this->twig = new \Twig_Environment(new \Twig_Loader_Filesystem([
-            __DIR__.'/../../Resources/views/Form',
-            __DIR__.'/../Fixtures/views/Twig',
+        $this->twig = new \Twig_Environment(new \Twig\Loader\FilesystemLoader([
+            __DIR__ . '/../../Resources/views/Form',
+            __DIR__ . '/../Fixtures/views/Twig',
         ]));
 
         $this->formFactory = Forms::createFormFactory();
-        $this->formRenderer = new TwigRenderer(new TwigRendererEngine(
+        $this->formRenderer = new FormRenderer(new TwigRendererEngine(
             ['javascript.html.twig', 'stylesheet.html.twig'],
             $this->twig
         ));
 
         $this->twig->addExtension(new FormExtraExtension());
 
-        if (!method_exists(FormExtension::class, '__get')) {
-            $this->twig->addExtension(new FormExtension($this->formRenderer));
-        } else {
-            $this->twig->addExtension(new FormExtension());
+        $this->twig->addExtension(new FormExtension());
 
-            $loader = $this->createMock('Twig_RuntimeLoaderInterface');
-            $loader
-                ->expects($this->once())
-                ->method('load')
-                ->with($this->identicalTo('Symfony\Bridge\Twig\Form\TwigRenderer'))
-                ->will($this->returnValue($this->formRenderer));
+        $loader = $this->createMock(\Twig\RuntimeLoader\RuntimeLoaderInterface::class);
+        $loader
+            ->expects($this->once())
+            ->method('load')
+            ->with($this->identicalTo('Symfony\Component\Form\FormRenderer'))
+            ->will($this->returnValue($this->formRenderer));
 
-            $this->twig->addRuntimeLoader($loader);
-        }
+        $this->twig->addRuntimeLoader($loader);
     }
 
     public function testDefaultJavascriptFragment()
@@ -180,7 +176,7 @@ class FormExtraExtensionTest extends AbstractTestCase
     private function getFormType($type)
     {
         return method_exists(AbstractType::class, 'getBlockPrefix')
-            ? 'Symfony\Component\Form\Extension\Core\Type\\'.ucfirst($type).'Type'
+            ? 'Symfony\Component\Form\Extension\Core\Type\\' . ucfirst($type) . 'Type'
             : $type;
     }
 }
